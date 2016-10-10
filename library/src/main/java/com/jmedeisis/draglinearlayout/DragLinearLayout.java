@@ -22,6 +22,7 @@ import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.ViewTreeObserver.OnPreDrawListener;
 import android.widget.LinearLayout;
@@ -269,7 +270,7 @@ public class DragLinearLayout extends LinearLayout {
             throw new IllegalArgumentException(
                 "Draggable children and their drag handles must not be null.");
         }
-        
+
         if (this == child.getParent()) {
             dragHandle.setOnTouchListener(new DragHandleOnTouchListener(child));
             draggableChildren.put(indexOfChild(child), new DraggableChild());
@@ -541,10 +542,23 @@ public class DragLinearLayout extends LinearLayout {
 
     private Runnable dragUpdater;
 
+    private int getTopRelativeToScrollView() {
+        int top = 0;
+
+        ViewGroup parent = null;
+        do {
+            parent = parent == null ? (ViewGroup) getParent() : (ViewGroup) parent.getParent();
+            top += parent.getTop();
+
+        } while (parent != this.containerScrollView);
+
+        return top;
+    }
+
     private void handleContainerScroll(final int currentTop) {
         if (null != containerScrollView) {
             final int startScrollY = containerScrollView.getScrollY();
-            final int absTop = getTop() - startScrollY + currentTop;
+            final int absTop = getTopRelativeToScrollView() - startScrollY + currentTop;
             final int height = containerScrollView.getHeight();
 
             final int delta;
